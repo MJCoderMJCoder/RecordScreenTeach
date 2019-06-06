@@ -3,6 +3,7 @@ package com.lzf.recordscreenteach;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -154,12 +156,45 @@ public class ClickService extends AccessibilityService {
     public class ClickReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int i = intent.getIntExtra("flag", 0);
-            Log.i("mService", "广播flag=" + i);
-            if (i == 1) {
+            int flag = intent.getIntExtra("flag", 0);
+            Log.i("mService", "广播flag=" + flag);
+            if (flag == 1) {
                 String resourceid = intent.getStringExtra("resIdOrText");
                 performClick(resourceid);
+            } else if (flag == 2) {
+                autoClickRatio(MyApplication.mainActivity, 0.75, 0.5);
             }
         }
+    }
+
+    /**
+     * 传入在屏幕中的比例位置，坐标左上角为基准
+     *
+     * @param act    传入Activity对象
+     * @param ratioX 需要点击的x坐标在屏幕中的比例位置
+     * @param ratioY 需要点击的y坐标在屏幕中的比例位置
+     */
+    public void autoClickRatio(final Activity act, final double ratioX, final double ratioY) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // 线程睡眠0.3s
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                // 生成点击坐标
+                int x = (int) (act.getWindowManager().getDefaultDisplay().getWidth() * ratioX);
+                int y = (int) (act.getWindowManager().getDefaultDisplay().getHeight() * ratioY);
+                // 利用ProcessBuilder执行shell命令
+                String[] order = {"input", "tap", "" + x, "" + y};
+                try {
+                    new ProcessBuilder(order).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }

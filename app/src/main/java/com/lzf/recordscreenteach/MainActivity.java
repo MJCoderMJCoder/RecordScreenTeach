@@ -6,13 +6,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by MJCoder on 2019-06-06.
@@ -28,6 +26,7 @@ public class MainActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MyApplication.mainActivity = this;
         sample_text = findViewById(R.id.sample_text);
         sample_text.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,52 +51,17 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         Intent intent = new Intent("auto.click");
-                        intent.putExtra("flag", 1);
+                        intent.putExtra("flag", 2);
                         intent.putExtra("resIdOrText", "我的");
                         sendBroadcast(intent);
                     }
-                }, 1500);
+                }, 3000);
             } else {
                 openAccessibilityServiceSettings();
             }
         } else {
             Toast.makeText(this, "请先安装葡萄浏览器", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    /**
-     * 传入在屏幕中的比例位置，坐标左上角为基准
-     *
-     * @param act    传入Activity对象
-     * @param ratioX 需要点击的x坐标在屏幕中的比例位置
-     * @param ratioY 需要点击的y坐标在屏幕中的比例位置
-     */
-    public void autoClickRatio(Activity act, final double ratioX, final double ratioY) {
-        width = this.getWindowManager().getDefaultDisplay().getWidth();
-        height = this.getWindowManager().getDefaultDisplay().getHeight();
-        Log.v("" + width, "" + height);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // 线程睡眠0.3s
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                // 生成点击坐标
-                int x = (int) (width * ratioX);
-                int y = (int) (height * ratioY);
-
-                // 利用ProcessBuilder执行shell命令
-                String[] order = {"input", "tap", "" + x, "" + y};
-                try {
-                    new ProcessBuilder(order).start();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 
     /**
